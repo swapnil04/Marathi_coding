@@ -2,17 +2,75 @@
 <html lang="mr">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Marathi Coding Platform</title>
-  <link rel="stylesheet" href="style.css">
+  <title>मराठीतून कोड चालवा</title>
+  <style>
+    body {
+      font-family: 'Arial', sans-serif;
+      padding: 20px;
+      background: #f4f4f4;
+    }
+    textarea {
+      width: 100%;
+      height: 200px;
+      font-size: 16px;
+    }
+    pre {
+      background: #222;
+      color: #0f0;
+      padding: 10px;
+      margin-top: 10px;
+      white-space: pre-wrap;
+    }
+    button {
+      margin-top: 10px;
+      padding: 10px 20px;
+      font-size: 16px;
+    }
+  </style>
+  <script src="https://cdn.jsdelivr.net/npm/skulpt@1.2.0/skulpt.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/skulpt@1.2.0/skulpt-stdlib.js"></script>
 </head>
 <body>
-  <h1>मराठीत कोड करा!</h1>
-  <textarea id="marathiCode" placeholder="येथे मराठी कोड लिहा..."></textarea>
-  <button onclick="transpileCode()">भाषांतर करा</button>
-  <h2>Python कोड:</h2>
+  <h2>मराठीतून कोड लिहा</h2>
+  <textarea id="marathiCode" placeholder="उदा: x = ५\nजर x > २ तर:\n    छापा('योग्य')"></textarea>
+  <br>
+  <button onclick="runMarathiCode()">चालवा</button>
   <pre id="output"></pre>
 
-  <script src="script.js"></script>
+  <script>
+    function marathiToPython(code) {
+      return code
+        .replace(/छापा/g, 'print')
+        .replace(/जर/g, 'if')
+        .replace(/नाहीतर/g, 'else')
+        .replace(/साठी/g, 'for')
+        .replace(/मध्ये/g, 'in')
+        .replace(/प्रमाण/g, 'while')
+        .replace(/परत करा/g, 'return')
+        .replace(/सत्य/g, 'True')
+        .replace(/खोटं/g, 'False')
+        .replace(/वर्ग/g, 'class')
+        .replace(/def/g, 'def');
+    }
+
+    function outf(text) {
+      document.getElementById("output").innerText += text + '\n';
+    }
+
+    function builtinRead(x) {
+      if (Sk.builtinFiles === undefined || Sk.builtinFiles["files"][x] === undefined)
+        throw "File not found: '" + x + "'";
+      return Sk.builtinFiles["files"][x];
+    }
+
+    function runMarathiCode() {
+      const code = document.getElementById("marathiCode").value;
+      const pythonCode = marathiToPython(code);
+      document.getElementById("output").innerText = '';
+      Sk.configure({ output: outf, read: builtinRead });
+      Sk.misceval.asyncToPromise(() => Sk.importMainWithBody("__main__", false, pythonCode, true))
+        .catch(err => outf(err.toString()));
+    }
+  </script>
 </body>
 </html>
